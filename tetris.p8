@@ -50,12 +50,13 @@ seed = abs(flr(seed))+1
 
 -- values to store the current
 -- tetris piece
+cur_typ = flr(rnd(7))+1
 nxt_typ = flr(rnd(7))+1
 cur_row = 1
 cur_col = 1
 cur_ind = 1
-cur_typ = flr(rnd(7))+1
-cur_piece={}
+cur_rot = 1
+cur_piece = {}
 
 -- init a 4x4 for blank piece
 --for i=0,4 do
@@ -70,8 +71,7 @@ end
 
 -- add 20 rows
 for m=1,20 do
- add(blank_array, 
-     copy(blank_row))
+ add(blank_array, copy(blank_row))
 end
 
 -- copying over blank values
@@ -108,14 +108,6 @@ coord_x = {-1, 0, 1, 2,
            -1, 0, 1, 2,
            -1, 0, 1, 2}									
 
--- function to get transform
--- tuple from coord arrays
-function get_coord (ind) 
-	return {coord_y[ind], 
-	        coord_x[ind]}
-end
-
-
 -- piece definitions
 
 -- two transformations
@@ -151,7 +143,7 @@ t_piece = {{ 9,10,11,14},
 z_piece = {{ 7,11,10,14},
            { 9,10,14,15}}
 											
-
+-- list of all pieces
 pieces = {i_piece,
 										j_piece,
 										l_piece,
@@ -159,6 +151,21 @@ pieces = {i_piece,
 										s_piece,
 										t_piece,
 										z_piece}
+
+-- function to get transform
+-- tuple from coord arrays
+function get_coord (ind) 
+	return {coord_y[ind], 
+	        coord_x[ind]}
+end
+
+--
+function make_mino()
+  cur_mino = cur_piece[cur_rot]
+  cur_coords = {}
+  cur_piece = pieces[cur_ind]
+end
+
 -->8
 
 function rotate ()
@@ -179,26 +186,26 @@ end
 -- given a point, piece type
 -- and a rotation for it, gen
 -- a piece
-function make_mino ()
- if (cur_typ == 'i') then
-  assert(true)
- elseif (cur_typ == 'j') then
-  assert(true)
- elseif (cur_typ == 'l') then
-  assert(true)
- elseif (cur_typ == 'o') then
-  assert(true)
- elseif (cur_typ == 's') then
-  assert(true)
- elseif (cur_typ == 't') then
-  assert(true)
- elseif (cur_typ == 'z') then
-  assert(true)
- else
+--function make_mino ()
+ --if (cur_typ == 'i') then
+  --assert(true)
+ --elseif (cur_typ == 'j') then
+  --assert(true)
+ --elseif (cur_typ == 'l') then
+  --assert(true)
+ --elseif (cur_typ == 'o') then
+  --assert(true)
+ --elseif (cur_typ == 's') then
+  --assert(true)
+ --elseif (cur_typ == 't') then
+  --assert(true)
+ --elseif (cur_typ == 'z') then
+  --assert(true)
+ --else
   -- not a current valid piece
-  assert(false)
- end
-end
+  --assert(false)
+ --end
+--end
 
 
 --
