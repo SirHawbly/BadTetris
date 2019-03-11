@@ -53,11 +53,14 @@ cur_coord = {} -- a list of coord tuples
 
 -- game initialization function
 function _init()
-  -- get random seed
-  srand(time())
+
+  -- seed the random obj
+  srand(flr(abs(time())))
+
+  -- pull a random seed
   seed = abs(flr(rnd(8192)))+1
 
-  -- add 10 columns
+  -- add 10 columns to the
   -- a nil spr default
   for n=1,10 do
   add(blank_row, 0)
@@ -155,9 +158,23 @@ pieces = {i_piece,
 
 -- function to get transform
 -- tuple from coord arrays
-function get_coord (ind) 
+function get_psuedo (ind) 
+
 	return {coord_y[ind], 
 	        coord_x[ind]}
+
+end
+
+
+--
+
+
+function get_coord (ind)
+  
+  return {coord_y[ind] + cur_row, 
+	        coord_x[ind] + cur_col}
+
+
 end
 
 
@@ -168,14 +185,13 @@ end
 -- typ and rot of the game, then
 -- stores psuedo and real coords
 function make_mino()
-  cur_piece = pieces[cur_typ][cur_rot]
-  cur_coord = {}
-  
-  --[[for i=1,4 do
-    add(cur_coord, get_coord(cur_piece[i]))
-  end]]--
 
-  foreach(cur_piece, 
+  temp = pieces[cur_typ][cur_rot]
+
+  foreach(temp, 
+          function (o) add(cur_piece, get_psuedo(o)) end)
+
+  foreach(temp,
           function (o) add(cur_coord, get_coord(o)) end)
 
 end
@@ -192,9 +208,11 @@ function rotate ()
 	if (btn(1)) then 
     cur_rot += 1
 	end
+
 	if (btn(2)) then
 		cur_rot -= 1
 	end
+
 end
 
 
@@ -207,9 +225,11 @@ function move_piece ()
 	if (btn(3)) then 
     cur_rot += 1
 	end
+
 	if (btn(4)) then
 		cur_rot -= 1
 	end
+
 end
 
 
@@ -221,30 +241,41 @@ end
 function clear ()
 
  for y=1,20 do
+
   full = true
+ 
   for x=1,10 do
-  
+ 
    -- go through the row, and 
    -- check the contents
    if (array[y][x] == 0) then
     full = false
    end
+ 
   end
 
   -- go through all the rows
   -- above, ending at two
   if (full) then
+
    if y == 1 then
     array[1] = copy(blank_row)
    else
+
     array[y] = copy(blank_row)
+
     for _y=0,y-1 do
      array[y-_y] = copy(array[y-_y-1])
     end
+
     array[1] = copy(blank_row)
+
    end
+
   end
+
  end
+
 end
 
 
@@ -276,11 +307,13 @@ end
 function draw_backdrop ()
 
  for n=0,15 do
+
   spr(8,0,n*8) -- left
   spr(11,120,n*8) -- right
   spr(11,52,n*8) -- divider
   spr(9,n*8,120) -- bottom  
   spr(10,n*8,0) -- top
+
  end
  
  print('next piece', 64, 5)
@@ -289,6 +322,7 @@ function draw_backdrop ()
  print(score, 64, 55)
  print('seed', 64, 85)
  print(seed, 64, 95)
+
 end
 
 
@@ -298,16 +332,27 @@ end
 function draw_array (array)
 
   for y=1,20 do
+
     for x=1,10 do
+
       --spr(16+array[y][x],
    				--x*5,
    				--(y*6)-2)
-      iscurrent = false
+
+      ispiece = false
+
+      coord = {y+cur_row, x+cur_col}
+
       for i=1,4 do
-        if (cur_coord[cur_rot] == {y,x}) then -- todo
+        if (cur_coord[cur_rot] == coord) then -- todo
+          print_piece(cur_typ, y, x)
+          break
         end
       end
-      print_piece(array[y][x], y, x)
+
+      if (not ispiece) then
+        print_piece(array[y][x], y, x)
+      end
     end
   end
 end
@@ -316,7 +361,7 @@ end
 --
 
 
-function x_draw ()
+function _draw ()
 
   make_mino()
 
@@ -338,9 +383,12 @@ function print_pair (o)
   print(o[1]..":"..o[2])
 end
 
+--[[
 make_mino()
 print("t:"..cur_typ..":"..#cur_coord.."pcs")
+foreach(cur_piece, print_pair)
 foreach(cur_coord, print_pair)
+]]-
 
 --
 
