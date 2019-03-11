@@ -23,73 +23,61 @@ end
 --
 
 
-function _init()
-	-- get random seed
-	srand(time())
-end
-
-
---
-
+-- the seed variable
+seed = 0
 
 -- score tracking variable
-score = 200
+score = 0
 
--- 10x20 array of pieces
-blank_array = {}
-
--- blank row in array
+-- blank row in array a list
+-- of 10 zeros
 blank_row = {}
 
--- blank 4x4 grid, blank piece
---blank_piece={}
-
--- pull the starting seed
-seed = rnd(8192)
-seed = abs(flr(seed))+1
+-- a blank 10x20 array of pieces 
+-- (integer values 1-7)
+blank_array = {}
 
 -- values to store the current
 -- tetris piece
-cur_typ = flr(rnd(7))+1
-nxt_typ = flr(rnd(7))+1
-cur_row = 1 -- x
-cur_col = 1 -- y
-cur_ind = 1 -- type of piece
+cur_typ = flr(rnd(7))+1 -- current piece
+nxt_typ = flr(rnd(7))+1 -- next piece type - todo
+cur_row = 5 -- current x
+cur_col = 1 -- current y
 cur_rot = 1 -- pieces rotation
-cur_piece = {}
-cur_coord = {}
-
--- init a 4x4 for blank piece
---for i=0,4 do
- --add(blank_piece, {0,0,0,0})
---end
-
--- add 10 columns
--- a nil spr default
-for n=1,10 do
- add(blank_row, 0)
-end 
-
--- add 20 rows
-for m=1,20 do
- add(blank_array, copy(blank_row))
-end
-
--- copying over blank values
-array = copy(blank_array)
--- cur_piece = copy(blank_piece)
-
-
-
--->8
--- tetris objects
+cur_piece = {} -- a list of psuedo coords
+cur_coord = {} -- a list of coord tuples
 
 
 --
 
 
--- pieces
+-- game initialization function
+function _init()
+  -- get random seed
+  srand(time())
+  seed = abs(flr(rnd(8192)))+1
 
+  -- add 10 columns
+  -- a nil spr default
+  for n=1,10 do
+  add(blank_row, 0)
+  end 
+
+  -- add 20 rows
+  for m=1,20 do
+  add(blank_array, copy(blank_row))
+  end
+
+  -- copying over blank values
+  array = copy(blank_array)
+
+end
+
+-->8
+
+-- tetris objects
+
+-- list of the pseudo coords
 -- 10 being the center of all
 -- minos
 coord = { 1, 2, 3, 4,
@@ -109,44 +97,49 @@ coord_x = {-1, 0, 1, 2,
            -1, 0, 1, 2,
            -1, 0, 1, 2}									
 
--- piece definitions
+-- piece definitions (with c as center)
 
--- two transformations
+-- 1: two transformations
 i_piece = {{ 2, 6,10,14}, -- x | 
-           { 9,10,11,12}} -- x | x x x x
-                          -- x |
+           { 9,10,11,12}} -- x |
+                          -- c | x c x x
                           -- x |
 
--- four transformations
+-- 2: four transformations
 j_piece = {{ 6,10,14,13}, --   x | x     | x x |       |
-           {11,10, 9, 5}, --   x | x x x | x   | x x x |
+           {11,10, 9, 5}, --   c | x c x | c   | x c x |
            {14,10, 6, 7}, -- x x |       | x   |     x |
-           { 9,10,11,15}} --     |       |     |       |
+           { 9,10,11,15}} 
 
--- four transformations
+-- 3: four transformations
 l_piece = {{ 6,10,14,15}, -- x   |       | x x |     x |
-           {11,10, 9,13}, -- x   | x x x |   x | x x x |
+           {11,10, 9,13}, -- c   | x c x |   c | x c x |
            {14,10, 6, 5}, -- x x | x     |   x |       |
-           { 9,10,11, 7}} --     |       |     |       |
+           { 9,10,11, 7}} 
 
--- one transformation
+-- 4: one transformation
 o_piece = {{ 6, 7,10,11}} -- x x |
-                          -- x x |
+                          -- c x |
 
--- two transformations
+-- 5: two transformations
 s_piece = {{ 5, 9,10,14}, -- x   |       |
-           {11,10,14,13}} -- x x |   x x |
+           {11,10,14,13}} -- x c |   c x |
                           --   x | x x   |
--- four transformations
+-- 6: four transformations
 t_piece = {{ 9,10,11,14}, --       |   x |   x   | x   |
-           { 6,10,14, 9}, -- x x x | x x | x x x | x x |
+           { 6,10,14, 9}, -- x c x | x c | x c x | c x |
            { 9,10,11, 6}, --   x   |   x |       | x   |
-           { 6,10,14,11}} --       |     |       |     |
+           { 6,10,14,11}}
            
--- two transformations           
-z_piece = {{ 7,11,10,14},  --   x |       |
-           { 9,10,14,15}}  -- x x | x x   |
-                           -- x   |   x x |
+-- 7: two transformations           
+z_piece = {{ 7,11,10,14}, --   x |       |
+           { 9,10,14,15}} -- c x | x c   |
+                          -- x   |   x x |
+
+
+--
+
+
 -- list of all pieces
 pieces = {i_piece,
           j_piece,
@@ -156,6 +149,10 @@ pieces = {i_piece,
           t_piece,
           z_piece}
 
+
+--
+
+
 -- function to get transform
 -- tuple from coord arrays
 function get_coord (ind) 
@@ -163,82 +160,64 @@ function get_coord (ind)
 	        coord_x[ind]}
 end
 
+
 --
+
+
+-- creates a mino from the cur_
+-- typ and rot of the game, then
+-- stores psuedo and real coords
 function make_mino()
-  cur_mino = cur_piece[cur_rot]
+  cur_piece = pieces[cur_typ][cur_rot]
   cur_coord = {}
-  for i=1,4 do
-    add(cur_coord, get_coord(cur_mino[i]))
-  end
+  
+  --[[for i=1,4 do
+    add(cur_coord, get_coord(cur_piece[i]))
+  end]]--
+
+  foreach(cur_piece, 
+          function (o) add(cur_coord, get_coord(o)) end)
+
 end
+
 
 -->8
 
-function rotate ()
-
-	if (btn(1)) then 
-    cur_ind += 1
-	end
-	if (btn(2)) then
-		cur_ind -= 1
-	end
-end
-
--->8
 -- tetris functions
 
 
--- https://stackoverflow.com/questions/233850/tetris-piece-rotation-algorithm
--- given a point, piece type
--- and a rotation for it, gen
--- a piece
---function make_mino ()
- --if (cur_typ == 'i') then
-  --assert(true)
- --elseif (cur_typ == 'j') then
-  --assert(true)
- --elseif (cur_typ == 'l') then
-  --assert(true)
- --elseif (cur_typ == 'o') then
-  --assert(true)
- --elseif (cur_typ == 's') then
-  --assert(true)
- --elseif (cur_typ == 't') then
-  --assert(true)
- --elseif (cur_typ == 'z') then
-  --assert(true)
- --else
-  -- not a current valid piece
-  --assert(false)
- --end
---end
+-- handles right and left key presses
+function rotate ()
 
-
---
-
-
-function test ()
-
- array[17][1] = 1
- array[19][1] = 2
- array[18][1] = 3
- array[16][3] = 1
- array[19][3] = 2
- array[18][3] = 3
- array[16][5] = 1
- array[19][5] = 2
- array[18][10] = 2
- array[15][4] = 1
- for x = 1,10 do
-  array[17][x] = 7
-  array[20][x] = 1
- end
+	if (btn(1)) then 
+    cur_rot += 1
+	end
+	if (btn(2)) then
+		cur_rot -= 1
+	end
 end
 
 
 --
 
 
+-- handles down, drop, and store key presses
+function move_piece ()
+
+	if (btn(3)) then 
+    cur_rot += 1
+	end
+	if (btn(4)) then
+		cur_rot -= 1
+	end
+end
+
+
+--
+
+
+-- goes through the array to find 
+-- and delete full rows
 function clear ()
 
  for y=1,20 do
@@ -269,12 +248,6 @@ function clear ()
 end
 
 
---
-
-
-function move_piece ()
-
-end
 -->8
 -- game functions
 
@@ -282,8 +255,9 @@ end
 --
 
 
+-- prints a piece (1-7) on a
+-- "grid" defined by spacing 
 function print_piece (a, y, x)
- -- spr(34, x*5,	(y*6)-2)
  spr(16+a, x*5,	(y*6)-2)
 end
 
@@ -291,14 +265,7 @@ end
 --
 
 
-function print_mino ()
-end
-
-
---
-
-
-function print_next_piece ()
+function print_next_piece () -- TODO
  
 end
 
@@ -335,9 +302,9 @@ function draw_array (array)
       --spr(16+array[y][x],
    				--x*5,
    				--(y*6)-2)
-      isCurrent = false
+      iscurrent = false
       for i=1,4 do
-        if (piece) then -- TODO
+        if (cur_coord[cur_rot] == {y,x}) then -- todo
         end
       end
       print_piece(array[y][x], y, x)
@@ -349,26 +316,56 @@ end
 --
 
 
-function _draw ()
+function x_draw ()
 
- cls()
- move_piece()
- draw_backdrop()
- draw_array(array)
- -- print_piece(7,1,1)
- clear()
+  make_mino()
+
+  cls()
+  move_piece()
+  draw_backdrop()
+  draw_array(array)
+  -- print_piece(7,1,1)
+  clear()
 end
 
 
+-->8
 
---function print_tetris()
-  --spr(16+array[y][x],
-        --x*5,
-        --(y*6)+-2)
---end
+-- Testing
 
 
--- 
+function print_pair (o)
+  print(o[1]..":"..o[2])
+end
+
+make_mino()
+print("t:"..cur_typ..":"..#cur_coord.."pcs")
+foreach(cur_coord, print_pair)
+
+--
+
+function array_test ()
+
+ array[17][1] = 1
+ array[19][1] = 2
+ array[18][1] = 3
+ array[16][3] = 1
+ array[19][3] = 2
+ array[18][3] = 3
+ array[16][5] = 1
+ array[19][5] = 2
+ array[18][10] = 2
+ array[15][4] = 1
+ for x = 1,10 do
+  array[17][x] = 7
+  array[20][x] = 1
+ end
+end
+
+-- array_test()
+-- clear()
+
+
 -->8
 -- notes
 --[[
