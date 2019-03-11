@@ -52,11 +52,12 @@ seed = abs(flr(seed))+1
 -- tetris piece
 cur_typ = flr(rnd(7))+1
 nxt_typ = flr(rnd(7))+1
-cur_row = 1
-cur_col = 1
-cur_ind = 1
-cur_rot = 1
+cur_row = 1 -- x
+cur_col = 1 -- y
+cur_ind = 1 -- type of piece
+cur_rot = 1 -- pieces rotation
 cur_piece = {}
+cur_coord = {}
 
 -- init a 4x4 for blank piece
 --for i=0,4 do
@@ -111,46 +112,49 @@ coord_x = {-1, 0, 1, 2,
 -- piece definitions
 
 -- two transformations
-i_piece = {{ 2, 6,10,14}, 
-           { 9,10,11,12}}
+i_piece = {{ 2, 6,10,14}, -- x | 
+           { 9,10,11,12}} -- x | x x x x
+                          -- x |
+                          -- x |
 
 -- four transformations
-j_piece = {{ 6,10,14,13},
-           {11,10,9,5},
-           {14,10,6,7},
-           {9,10,11,15}}
+j_piece = {{ 6,10,14,13}, --   x | x     | x x |       |
+           {11,10, 9, 5}, --   x | x x x | x   | x x x |
+           {14,10, 6, 7}, -- x x |       | x   |     x |
+           { 9,10,11,15}} --     |       |     |       |
 
 -- four transformations
-l_piece = {{ 6,10,14,15},
-           {11,10, 9,13},
-           {14,10, 6, 5},
-           { 9,10,11, 7}}
+l_piece = {{ 6,10,14,15}, -- x   |       | x x |     x |
+           {11,10, 9,13}, -- x   | x x x |   x | x x x |
+           {14,10, 6, 5}, -- x x | x     |   x |       |
+           { 9,10,11, 7}} --     |       |     |       |
 
 -- one transformation
-o_piece = {{6,7,10,11}}
+o_piece = {{ 6, 7,10,11}} -- x x |
+                          -- x x |
 
 -- two transformations
-s_piece = {{ 5, 9,10,14},
-           {11,10,14,13}}
-
+s_piece = {{ 5, 9,10,14}, -- x   |       |
+           {11,10,14,13}} -- x x |   x x |
+                          --   x | x x   |
 -- four transformations
-t_piece = {{ 9,10,11,14},
-           { 6,10,14, 9},
-           { 9,10,11, 6},
-           { 6,10,14,11}}
+t_piece = {{ 9,10,11,14}, --       |   x |   x   | x   |
+           { 6,10,14, 9}, -- x x x | x x | x x x | x x |
+           { 9,10,11, 6}, --   x   |   x |       | x   |
+           { 6,10,14,11}} --       |     |       |     |
            
 -- two transformations           
-z_piece = {{ 7,11,10,14},
-           { 9,10,14,15}}
-											
+z_piece = {{ 7,11,10,14},  --   x |       |
+           { 9,10,14,15}}  -- x x | x x   |
+                           -- x   |   x x |
 -- list of all pieces
 pieces = {i_piece,
-										j_piece,
-										l_piece,
-										o_piece,
-										s_piece,
-										t_piece,
-										z_piece}
+          j_piece,
+          l_piece,
+          o_piece,
+          s_piece,
+          t_piece,
+          z_piece}
 
 -- function to get transform
 -- tuple from coord arrays
@@ -162,8 +166,10 @@ end
 --
 function make_mino()
   cur_mino = cur_piece[cur_rot]
-  cur_coords = {}
-  cur_piece = pieces[cur_ind]
+  cur_coord = {}
+  for i=1,4 do
+    add(cur_coord, get_coord(cur_mino[i]))
+  end
 end
 
 -->8
@@ -229,6 +235,7 @@ function test ()
  end
 end
 
+
 --
 
 
@@ -280,8 +287,16 @@ function print_piece (a, y, x)
  spr(16+a, x*5,	(y*6)-2)
 end
 
+
+--
+
+
 function print_mino ()
 end
+
+
+--
+
 
 function print_next_piece ()
  
