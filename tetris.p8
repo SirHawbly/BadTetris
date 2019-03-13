@@ -44,7 +44,7 @@ nxt_typ = flr(rnd(7))+1 -- next piece type - todo
 cur_row = 5 -- current x
 cur_col = 1 -- current y
 cur_rot = 1 -- pieces rotation
-cur_piece = {} -- a list of psuedo coords
+cur_psuedo = {} -- a list of psuedo coords
 cur_coord = {} -- a list of coord tuples
 
 
@@ -156,24 +156,11 @@ pieces = {i_piece,
 --
 
 
--- function to get transform
--- tuple from coord arrays
-function get_psuedo (ind) 
+-- grabs the current 4-tuple
+-- that describes the mino
+function get_psuedo (pro_typ) 
 
-	return {coord_y[ind], 
-	        coord_x[ind]}
-
-end
-
-
---
-
-
-function get_coord (ind)
-  
-  return {coord_y[ind] + cur_row, 
-	        coord_x[ind] + cur_col}
-
+	return pieces[pro_typ][pro_rot]
 
 end
 
@@ -184,15 +171,17 @@ end
 -- creates a mino from the cur_
 -- typ and rot of the game, then
 -- stores psuedo and real coords
-function make_mino()
+function make_mino(pro_typ)
 
-  temp = pieces[cur_typ][cur_rot]
+  cur_psuedo = get_psuedo()
 
-  foreach(temp, 
-          function (o) add(cur_piece, get_psuedo(o)) end)
+  cur_piece = {} 
 
-  foreach(temp,
-          function (o) add(cur_coord, get_coord(o)) end)
+  for i=1,4 do
+    add(cur_piece, 
+        {cur_psuedo[i][1] + cur_row, 
+          cur_psuedo[i][2] + cur_col})
+  end
 
 end
 
@@ -213,6 +202,23 @@ function rotate ()
 		cur_rot -= 1
 	end
 
+  if (cur_rot > #pieces[cur_typ)) then
+    cur_rot = 1
+  end
+
+  if (cur_rot < 1) then
+    cur_rot = #pieces[cur_typ)
+  end
+end
+
+
+--
+
+
+-- TODO
+-- drop piece until collision
+
+function drop_piece ()
 end
 
 
@@ -223,13 +229,24 @@ end
 function move_piece ()
 
 	if (btn(3)) then 
-    cur_rot += 1
+    cur_row += 1
 	end
 
 	if (btn(4)) then
-		cur_rot -= 1
+		cur_row -= 1
 	end
 
+  if (cur_row < 1) then
+    cur_row = 1
+  end
+
+  if (cur_row > 10) then
+    cur_row = 10
+  end
+
+  if (btn(5)) then
+    -- drop piece TODO
+  end
 end
 
 
@@ -297,6 +314,13 @@ end
 
 
 function print_next_piece () -- TODO
+
+  -- print inbetween 5 and 45
+  for j = 1,4 do
+    for i = 1,4 do 
+      spr(16+nxt_typ, x*5,	(y*6)-2)
+    end
+  end
  
 end
 
