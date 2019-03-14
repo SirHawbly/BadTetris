@@ -38,15 +38,23 @@ blank_row = {}
 blank_array = {}
 
 -- values to store the current
--- tetris piece
-cur_typ = flr(rnd(7))+1 -- current piece
-nxt_typ = flr(rnd(7))+1 -- next piece type - todo
+-- tetris piece types
+cur_typ = flr(rnd(7))+1
+nxt_typ = flr(rnd(7))+1 -- todo
+
+-- tetris piece values
 cur_row = 5 -- current x
 cur_col = 1 -- current y
 cur_rot = 1 -- pieces rotation
+
+-- tetris piece coordinates
 cur_psuedo = {} -- a list of psuedo coords
 cur_coord = {} -- a list of coord tuples
+nxt_psuedo = {}
 
+
+psuedo_vals = {}
+psuedo_coords = {}
 
 --
 
@@ -158,9 +166,22 @@ pieces = {i_piece,
 
 -- grabs the current 4-tuple
 -- that describes the mino
-function get_psuedo (pro_typ) 
+function get_psuedo (pro_typ, pro_rot) 
 
-	return pieces[pro_typ][pro_rot]
+  -- returns a list of four ints
+  -- from 1 to 16
+	psuedo_vals = pieces[pro_typ][pro_rot]
+
+  -- list for storing psuedo 
+  -- coordinates
+  psuedo_coords = {}
+
+  for i = 1,4 do
+    add(psuedo_coords, {coord_y[psuedo_vals[i]],
+                        coord_x[psuedo_vals[i]]}) 
+  end
+
+  return psuedo_coords
 
 end
 
@@ -171,15 +192,15 @@ end
 -- creates a mino from the cur_
 -- typ and rot of the game, then
 -- stores psuedo and real coords
-function make_mino(pro_typ)
+function get_mino_coords()
 
-  cur_psuedo = get_psuedo()
+  cur_psuedo = get_psuedo(cur_typ, cur_rot)
 
-  cur_piece = {} 
+  cur_piece = {}
 
   for i=1,4 do
     add(cur_piece, 
-        {cur_psuedo[i][1] + cur_row, 
+        {cur_psuedo[i][1] + cur_row,
           cur_psuedo[i][2] + cur_col})
   end
 
@@ -202,12 +223,12 @@ function rotate ()
 		cur_rot -= 1
 	end
 
-  if (cur_rot > #pieces[cur_typ)) then
+  if (cur_rot > #pieces[cur_typ]) then
     cur_rot = 1
   end
 
   if (cur_rot < 1) then
-    cur_rot = #pieces[cur_typ)
+    cur_rot = #pieces[cur_typ]
   end
 end
 
@@ -313,12 +334,25 @@ end
 --
 
 
-function print_next_piece () -- TODO
+function print_next_piece (y, x) -- TODO
 
-  -- print inbetween 5 and 45
+  nxt_psuedo = get_psuedo(nxt_typ)
+  psuedo_vals = pieces[nxt_typ][1]
+
+  -- print inbetween 5 and 45 - 10-40
   for j = 1,4 do
     for i = 1,4 do 
-      spr(16+nxt_typ, x*5,	(y*6)-2)
+      p = coord[(j-1*4) + i] -- coord = 1d array
+      
+      for k = 1,4 do
+
+        if (p == k) then
+          spr(16+cur_typ, x+j*5,	y+(i*6))
+          -- print("asdfasdf", 64, 11, 12)
+        end
+      -- spr(16+nxt_typ, x*5,	(y*6)-2)
+      end
+    
     end
   end
  
@@ -341,7 +375,7 @@ function draw_backdrop ()
  end
  
  print('next piece', 64, 5)
- print_next_piece()
+ print_next_piece(64,11)
  print('score', 64, 45)
  print(score, 64, 55)
  print('seed', 64, 85)
@@ -387,7 +421,7 @@ end
 
 function _draw ()
 
-  make_mino()
+  get_mino_coords()
 
   cls()
   move_piece()
@@ -412,7 +446,7 @@ make_mino()
 print("t:"..cur_typ..":"..#cur_coord.."pcs")
 foreach(cur_piece, print_pair)
 foreach(cur_coord, print_pair)
-]]-
+]]
 
 --
 
