@@ -23,8 +23,21 @@ end
 --
 
 
--- the seed variable
-seed = 0
+-- the random seed variable
+-- get a val under 8192
+seed = flr(abs(8192*rnd()))
+srand(seed)
+
+-- see if a seed was passed in
+-- if so, seed rand with it
+if (stat(6) != '') then
+  seed = stat(6) -- see if a seed was passed in
+  srand(seed)
+end
+
+
+--
+
 
 -- score tracking variable
 score = 0
@@ -55,6 +68,8 @@ nxt_psuedo = {}
 
 psuedo_vals = {}
 psuedo_coords = {}
+p = {}
+
 
 --
 
@@ -62,21 +77,15 @@ psuedo_coords = {}
 -- game initialization function
 function _init()
 
-  -- seed the random obj
-  srand(flr(abs(time())))
-
-  -- pull a random seed
-  seed = abs(flr(rnd(8192)))+1
-
   -- add 10 columns to the
   -- a nil spr default
   for n=1,10 do
-  add(blank_row, 0)
+    add(blank_row, 0)
   end 
 
   -- add 20 rows
   for m=1,20 do
-  add(blank_array, copy(blank_row))
+    add(blank_array, copy(blank_row))
   end
 
   -- copying over blank values
@@ -111,10 +120,10 @@ coord_x = {-1, 0, 1, 2,
 -- piece definitions (with c as center)
 
 -- 1: two transformations
-i_piece = {{ 2, 6,10,14}, -- x | 
-           { 9,10,11,12}} -- x |
-                          -- c | x c x x
-                          -- x |
+i_piece = {{ 9,10,11,12}, --         | x | 
+           { 2, 6,10,14}} --         | x |
+                          -- x c x x | c | 
+                          --         | x |
 
 -- 2: four transformations
 j_piece = {{ 6,10,14,13}, --   x | x     | x x |       |
@@ -166,22 +175,23 @@ pieces = {i_piece,
 
 -- grabs the current 4-tuple
 -- that describes the mino
-function get_psuedo (pro_typ, pro_rot) 
+function get_psuedo (typ, rot) 
 
   -- returns a list of four ints
   -- from 1 to 16
-	psuedo_vals = pieces[pro_typ][pro_rot]
+	--p = pieces[typ][rot]
+	p = pieces[1][1]
 
   -- list for storing psuedo 
   -- coordinates
-  psuedo_coords = {}
+  coords = {}
 
   for i = 1,4 do
-    add(psuedo_coords, {coord_y[psuedo_vals[i]],
-                        coord_x[psuedo_vals[i]]}) 
+    add(coords, {coord_y[ p[i] ],
+                  coord_x[ p[i] ]}) 
   end
 
-  return psuedo_coords
+  return coords
 
 end
 
@@ -334,26 +344,17 @@ end
 --
 
 
-function print_next_piece (y, x) -- TODO
+function print_next_piece (x, y) -- TODO
 
-  nxt_psuedo = get_psuedo(nxt_typ)
-  psuedo_vals = pieces[nxt_typ][1]
+  nxt_psuedo = get_psuedo(nxt_typ, 1)
+  -- psuedo_vals = pieces[nxt_typ][1]
+  -- spr(16+1, y+6,	x+5)
 
-  -- print inbetween 5 and 45 - 10-40
-  for j = 1,4 do
-    for i = 1,4 do 
-      p = coord[(j-1*4) + i] -- coord = 1d array
-      
-      for k = 1,4 do
-
-        if (p == k) then
-          spr(16+cur_typ, x+j*5,	y+(i*6))
-          -- print("asdfasdf", 64, 11, 12)
-        end
-      -- spr(16+nxt_typ, x*5,	(y*6)-2)
-      end
-    
-    end
+  for i = 1,4 do
+    s = nxt_psuedo[i]
+    ybuf = (s[1]+2)*10
+    xbuf = (s[2]+1)*8
+    spr(nxt_typ, x+xbuf, y+ybuf)
   end
  
 end
@@ -364,18 +365,21 @@ end
 
 function draw_backdrop ()
 
- for n=0,15 do
+  for n=0,15 do
 
-  spr(8,0,n*8) -- left
-  spr(11,120,n*8) -- right
-  spr(11,52,n*8) -- divider
-  spr(9,n*8,120) -- bottom  
-  spr(10,n*8,0) -- top
+    spr(8,0,n*8) -- left
+    spr(11,120,n*8) -- right
+    spr(11,52,n*8) -- divider
+    spr(9,n*8,120) -- bottom  
+    spr(10,n*8,0) -- top
 
- end
+  end
  
  print('next piece', 64, 5)
- print_next_piece(64,11)
+ print_next_piece(72, 24)
+ --print_next_piece(72, 34)
+ --print_next_piece(72, 44)
+
  print('score', 64, 45)
  print(score, 64, 55)
  print('seed', 64, 85)
