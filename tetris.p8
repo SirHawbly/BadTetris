@@ -180,7 +180,7 @@ function get_psuedo (typ, rot)
   -- returns a list of four ints
   -- from 1 to 16
 	--p = pieces[typ][rot]
-	p = pieces[1][1]
+	p = pieces[typ][rot]
 
   -- list for storing psuedo 
   -- coordinates
@@ -352,7 +352,7 @@ function print_next_piece (x, y) -- TODO
 
   for i = 1,4 do
     s = nxt_psuedo[i]
-    ybuf = (s[1]+2)*10
+    ybuf = (s[1])*10
     xbuf = (s[2]+1)*8
     spr(nxt_typ, x+xbuf, y+ybuf)
   end
@@ -376,9 +376,9 @@ function draw_backdrop ()
   end
  
  print('next piece', 64, 5)
- print_next_piece(72, 24)
- --print_next_piece(72, 34)
- --print_next_piece(72, 44)
+ --print_next_piece(72, 13) -- TODO
+ print_next_piece(72, 23)
+ --print_next_piece(72, 33)
 
  print('score', 64, 45)
  print(score, 64, 55)
