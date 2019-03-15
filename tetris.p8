@@ -71,8 +71,8 @@ nxt_typ = flr(rnd(7))+1 -- next mino - todo
 str_typ = 0 -- stored mino - todo
 
 -- tetris piece values
-cur_row = 5 -- current x
-cur_col = 1 -- current y
+cur_row = 10 -- current x
+cur_col = 5 -- current y
 cur_rot = 1 -- pieces rotation
 
 -- tetris piece coordinates
@@ -223,7 +223,7 @@ end
 -- creates a mino from the cur_
 -- typ and rot of the game, then
 -- stores psuedo and real coords
-function get_mino_coords()
+function get_cur_coords()
 
   cur_psuedo = get_psuedo(cur_typ, cur_rot)
 
@@ -316,7 +316,10 @@ end
 function update_mino()
   rotate()
   move_piece()
-  cur_row += 1
+
+  get_cur_coords()
+
+  -- if (clock(10)) then cur_row += 1 end -- TODO
 end
 
 
@@ -383,10 +386,10 @@ end
 --
 
 
-function print_next_piece (x, y) -- TODO
+function print_next_piece (x, y) -- todo
 
   -- print the first frame of the next piece
-  nxt_psuedo = get_psuedo(nxt_typ, cur_rot) -- TODO, change rot to 1
+  nxt_psuedo = get_psuedo(nxt_typ, cur_rot) -- todo, change rot to 1
 
   for i = 1,4 do
     s = nxt_psuedo[i]
@@ -401,7 +404,7 @@ end
 --
 
 
-function print_store_piece (x, y) -- TODO
+function print_store_piece (x, y) -- todo
 
   if (str_typ == 0) then return end
 
@@ -440,7 +443,6 @@ function draw_backdrop ()
 
  print('score', 64, 85) -- ybuffer = 10
  --print(time(), 64, 95) -- ybuffer = 10
- if (clock(10)) then score += 10 end
  print(score, 64, 95) -- ybuffer = 10
 
  print('seed', 64, 105) -- ybuffer = 10
@@ -452,30 +454,45 @@ end
 -- 
 
 
-function draw_array (array)
+function print_pair (o)
+  print(o[1]..":"..o[2])
+end
+
+
+--
+
+
+function pair_equal (p1, p2)
+  return ((p1[1] == p2[1]) and (p1[2] == p2[2]))
+end
+
+
+--
+
+function draw_array (array) -- TODO
 
   for y=1,20 do
-
     for x=1,10 do
 
-      --spr(16+array[y][x],
-   				--x*5,
-   				--(y*6)-2)
-
       ispiece = false
-
-      coord = {y+cur_row, x+cur_col}
+      -- s = {y + cur_row, x + cur_col}
+      s = {y, x}
 
       for i=1,4 do
-        if (cur_coord[cur_rot] == coord) then -- todo
+        c = cur_piece[i]
+
+        if (pair_equal(c,s)) then -- todo
           print_piece(cur_typ, y, x)
+          ispiece = true
           break
         end
       end
 
       if (not ispiece) then
         print_piece(array[y][x], y, x)
+        -- print_pair(s)
       end
+
     end
   end
 end
@@ -485,8 +502,6 @@ end
 
 
 function _draw ()
-
-  get_mino_coords()
 
   cls()
   update_mino()
@@ -499,11 +514,6 @@ end
 -->8
 
 -- Testing
-
-
-function print_pair (o)
-  print(o[1]..":"..o[2])
-end
 
 --[[
 make_mino()
