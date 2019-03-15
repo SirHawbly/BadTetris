@@ -23,6 +23,20 @@ end
 --
 
 
+function clock (t)
+
+  cur = time() * 100
+  if (cur % t == 0) then
+    return true
+  else
+    return false
+  end
+end
+
+
+--
+
+
 -- the random seed variable
 -- get a val under 8192
 seed = flr(abs(8192*rnd()))
@@ -52,9 +66,9 @@ blank_array = {}
 
 -- values to store the current
 -- tetris piece types
-cur_typ = flr(rnd(7))+1
-nxt_typ = flr(rnd(7))+1 -- todo
-str_typ = 0 -- todo
+cur_typ = flr(rnd(7))+1 -- current mino 
+nxt_typ = flr(rnd(7))+1 -- next mino - todo
+str_typ = 0 -- stored mino - todo
 
 -- tetris piece values
 cur_row = 5 -- current x
@@ -232,12 +246,12 @@ end
 -- handles right and left key presses
 function rotate ()
 
-	if (btn(1)) then 
-    cur_rot += 1
+	if (btn(0)) then 
+    cur_rot -= 1
 	end
 
-	if (btn(2)) then
-		cur_rot -= 1
+	if (btn(1)) then
+		cur_rot += 1
 	end
 
   if (cur_rot > 4) then
@@ -266,26 +280,33 @@ end
 -- handles down, drop, and store key presses
 function move_piece ()
 
+  -- press down
 	if (btn(3)) then 
     cur_row += 1
 	end
 
-	if (btn(4)) then
-		cur_row -= 1
-	end
-
-  if (cur_row < 1) then
-    cur_row = 1
-  end
-
+  -- check bounds
   if (cur_row > 10) then
     cur_row = 10
   end
 
-  if (btn(5)) then
-    -- drop piece TODO
-    drop_piece()
+  -- press up
+  if (btn(2)) then
+    drop_piece() -- TODO
   end
+
+  -- if either z or b is hit, store
+  if (btn(4) or btn(5)) then
+    if (str_typ == 0) then
+      str_typ = cur_typ
+      cur_typ = flr(rnd(7))+1
+    else
+      temp = str_typ
+      str_typ = cur_typ
+      cur_typ = temp
+    end
+  end
+
 end
 
 
@@ -364,9 +385,8 @@ end
 
 function print_next_piece (x, y) -- TODO
 
-  nxt_psuedo = get_psuedo(nxt_typ, cur_rot)
-  -- psuedo_vals = pieces[nxt_typ][1]
-  -- spr(16+1, y+6,	x+5)
+  -- print the first frame of the next piece
+  nxt_psuedo = get_psuedo(nxt_typ, cur_rot) -- TODO, change rot to 1
 
   for i = 1,4 do
     s = nxt_psuedo[i]
@@ -419,6 +439,8 @@ function draw_backdrop ()
  print_store_piece(72, 63) -- ybuffer = 10
 
  print('score', 64, 85) -- ybuffer = 10
+ --print(time(), 64, 95) -- ybuffer = 10
+ if (clock(10)) then score += 10 end
  print(score, 64, 95) -- ybuffer = 10
 
  print('seed', 64, 105) -- ybuffer = 10
@@ -470,7 +492,6 @@ function _draw ()
   update_mino()
   draw_backdrop()
   draw_array(array)
-  -- print_piece(7,1,1)
   clear()
 end
 
