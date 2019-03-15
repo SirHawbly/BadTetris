@@ -54,6 +54,7 @@ blank_array = {}
 -- tetris piece types
 cur_typ = flr(rnd(7))+1
 nxt_typ = flr(rnd(7))+1 -- todo
+str_typ = 0 -- todo
 
 -- tetris piece values
 cur_row = 5 -- current x
@@ -117,44 +118,50 @@ coord_x = {-1, 0, 1, 2,
            -1, 0, 1, 2,
            -1, 0, 1, 2}									
 
--- piece definitions (with c as center)
+-- piece definitions (with c as center) - TODO
 
 -- 1: two transformations
-i_piece = {{ 9,10,11,12}, --         | x | 
-           { 2, 6,10,14}} --         | x |
-                          -- x c x x | c | 
-                          --         | x |
+i_piece = {{ 9,10,11,12}, --         |   x     |         |     x |
+           { 3, 7,11,15}, --         |   c     | x x c x |     x |
+           { 5, 6, 7, 8}, -- x c x x |   x     |         |     c |
+           { 2, 6,10,14}} --         |   x     |         |     x |                          
 
 -- 2: four transformations
-j_piece = {{ 6,10,14,13}, --   x | x     | x x |       |
-           {11,10, 9, 5}, --   c | x c x | c   | x c x |
-           {14,10, 6, 7}, -- x x |       | x   |     x |
-           { 9,10,11,15}} 
+j_piece = {{ 6,10,14,13}, --   x   | x     |   x x |       |
+           { 9,10,11,15}, --   c   | x c x |   c   | x c x |
+           {14,10, 6, 7}, -- x x   |       |   x   |     x |
+           {11,10, 9, 5}} --       |       |       |       |
 
 -- 3: four transformations
-l_piece = {{ 6,10,14,15}, -- x   |       | x x |     x |
-           {11,10, 9,13}, -- c   | x c x |   c | x c x |
-           {14,10, 6, 5}, -- x x | x     |   x |       |
-           { 9,10,11, 7}} 
+l_piece = {{ 6,10,14,15}, --   x   |       | x x   |     x |
+           { 9,10,11, 7}, --   c   | x c x |   c   | x c x |
+           {14,10, 6, 5}, --   x x | x     |   x   |       |
+           {11,10, 9,13}} --       |       |       |       |
 
 -- 4: one transformation
-o_piece = {{ 6, 7,10,11}} -- x x |
-                          -- c x |
+o_piece = {{ 6, 7,10,11}, --  c x |   c x |   c x |   c x |
+           { 6, 7,10,11}, --  x x |   x x |   x x |   x x |
+           { 6, 7,10,11}, --      |       |       |       |
+           { 6, 7,10,11}} --      |       |       |       |
+                          
 
 -- 5: two transformations
-s_piece = {{ 5, 9,10,14}, -- x   |       |
-           {11,10,14,13}} -- x c |   c x |
-                          --   x | x x   |
+s_piece = {{ 6, 7,10, 9}, -- x     |   x x |   x   |       |
+           { 5, 9,10,14}, -- x c   | x c   |   c x |   c x |
+           {11,10,14,13}, --   x   |       |     x | x x   |
+           { 6,10,11,15}} --       |       |       |       |
+                         
 -- 6: four transformations
-t_piece = {{ 9,10,11,14}, --       |   x |   x   | x   |
-           { 6,10,14, 9}, -- x c x | x c | x c x | c x |
-           { 9,10,11, 6}, --   x   |   x |       | x   |
-           { 6,10,14,11}}
+t_piece = {{ 9,10,11,14}, --       |   x   |   x   |   x   |
+           { 6,10,14,11}, -- x c x | x c   | x c x |   c x |
+           { 9,10,11, 6}, --   x   |   x   |       |   x   |
+           { 6,10,14, 9}} --       |       |       |       |
            
 -- 7: two transformations           
-z_piece = {{ 7,11,10,14}, --   x |       |
-           { 9,10,14,15}} -- c x | x c   |
-                          -- x   |   x x |
+z_piece = {{ 5, 6,10,11}, --     x |       |   x   | x x   |
+           { 6,10, 9,13}, --   c x | x c   | x c   |   c x |
+           { 9,10,14,15}, --   x   |   x x | x     |       |
+           { 7,11,10,14}} --       |       |       |       |
 
 
 --
@@ -233,12 +240,12 @@ function rotate ()
 		cur_rot -= 1
 	end
 
-  if (cur_rot > #pieces[cur_typ]) then
+  if (cur_rot > 4) then
     cur_rot = 1
   end
 
   if (cur_rot < 1) then
-    cur_rot = #pieces[cur_typ]
+    cur_rot = 4
   end
 end
 
@@ -277,7 +284,18 @@ function move_piece ()
 
   if (btn(5)) then
     -- drop piece TODO
+    drop_piece()
   end
+end
+
+
+--
+
+
+function update_mino()
+  rotate()
+  move_piece()
+  cur_row += 1
 end
 
 
@@ -346,7 +364,7 @@ end
 
 function print_next_piece (x, y) -- TODO
 
-  nxt_psuedo = get_psuedo(nxt_typ, 1)
+  nxt_psuedo = get_psuedo(nxt_typ, cur_rot)
   -- psuedo_vals = pieces[nxt_typ][1]
   -- spr(16+1, y+6,	x+5)
 
@@ -355,6 +373,25 @@ function print_next_piece (x, y) -- TODO
     ybuf = (s[1])*10
     xbuf = (s[2]+1)*8
     spr(nxt_typ, x+xbuf, y+ybuf)
+  end
+ 
+end
+
+
+--
+
+
+function print_store_piece (x, y) -- TODO
+
+  if (str_typ == 0) then return end
+
+  str_psuedo = get_psuedo(str_typ, 1)
+
+  for i = 1,4 do
+    s = str_psuedo[i]
+    ybuf = (s[1])*10
+    xbuf = (s[2]+1)*8
+    spr(str_typ, x+xbuf, y+ybuf)
   end
  
 end
@@ -375,15 +412,17 @@ function draw_backdrop ()
 
   end
  
- print('next piece', 64, 5)
- --print_next_piece(72, 13) -- TODO
- print_next_piece(72, 23)
- --print_next_piece(72, 33)
+ print('next piece', 64, 5)-- ybuffer = 18
+ print_next_piece(72, 23) -- ybuffer = 10
 
- print('score', 64, 45)
- print(score, 64, 55)
- print('seed', 64, 85)
- print(seed, 64, 95)
+ print('stored piece', 64, 45) -- ybuffer = 18
+ print_store_piece(72, 63) -- ybuffer = 10
+
+ print('score', 64, 85) -- ybuffer = 10
+ print(score, 64, 95) -- ybuffer = 10
+
+ print('seed', 64, 105) -- ybuffer = 10
+ print(seed, 64, 115)
 
 end
 
@@ -428,7 +467,7 @@ function _draw ()
   get_mino_coords()
 
   cls()
-  move_piece()
+  update_mino()
   draw_backdrop()
   draw_array(array)
   -- print_piece(7,1,1)
