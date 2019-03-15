@@ -75,6 +75,12 @@ cur_row = 10 -- current x
 cur_col = 5 -- current y
 cur_rot = 1 -- pieces rotation
 
+function reset_xy ()
+  cur_row = 1 -- current x
+  cur_col = 5 -- current y
+  cur_rot = 1 -- pieces rotation
+end
+
 -- tetris piece coordinates
 cur_psuedo = {} -- a list of psuedo coords
 cur_coord = {} -- a list of coord tuples
@@ -134,44 +140,44 @@ coord_x = {-1, 0, 1, 2,
 
 -- piece definitions (with c as center) - TODO
 
--- 1: two transformations
+-- 1:
 i_piece = {{ 9,10,11,12}, --         |   x     |         |     x |
            { 3, 7,11,15}, --         |   c     | x x c x |     x |
            { 5, 6, 7, 8}, -- x c x x |   x     |         |     c |
            { 2, 6,10,14}} --         |   x     |         |     x |                          
 
--- 2: four transformations
+-- 2: 
 j_piece = {{ 6,10,14,13}, --   x   | x     |   x x |       |
            { 9,10,11,15}, --   c   | x c x |   c   | x c x |
            {14,10, 6, 7}, -- x x   |       |   x   |     x |
            {11,10, 9, 5}} --       |       |       |       |
 
--- 3: four transformations
+-- 3:
 l_piece = {{ 6,10,14,15}, --   x   |       | x x   |     x |
            { 9,10,11, 7}, --   c   | x c x |   c   | x c x |
            {14,10, 6, 5}, --   x x | x     |   x   |       |
            {11,10, 9,13}} --       |       |       |       |
 
--- 4: one transformation
+-- 4:
 o_piece = {{ 6, 7,10,11}, --  c x |   c x |   c x |   c x |
            { 6, 7,10,11}, --  x x |   x x |   x x |   x x |
            { 6, 7,10,11}, --      |       |       |       |
            { 6, 7,10,11}} --      |       |       |       |
                           
 
--- 5: two transformations
+-- 5:
 s_piece = {{ 6, 7,10, 9}, -- x     |   x x |   x   |       |
            { 5, 9,10,14}, -- x c   | x c   |   c x |   c x |
            {11,10,14,13}, --   x   |       |     x | x x   |
            { 6,10,11,15}} --       |       |       |       |
                          
--- 6: four transformations
+-- 6:
 t_piece = {{ 9,10,11,14}, --       |   x   |   x   |   x   |
            { 6,10,14,11}, -- x c x | x c   | x c x |   c x |
            { 9,10,11, 6}, --   x   |   x   |       |   x   |
            { 6,10,14, 9}} --       |       |       |       |
            
--- 7: two transformations           
+-- 7:
 z_piece = {{ 5, 6,10,11}, --     x |       |   x   | x x   |
            { 6,10, 9,13}, --   c x | x c   | x c   |   c x |
            { 9,10,14,15}, --   x   |   x x | x     |       |
@@ -246,14 +252,15 @@ end
 -- handles right and left key presses
 function rotate ()
 
-	if (btn(0)) then 
+	if (btn(0)) then -- if left
     cur_rot -= 1
 	end
 
-	if (btn(1)) then
+	if (btn(1)) then -- if right
 		cur_rot += 1
 	end
 
+  -- check rotation bounds
   if (cur_rot > 4) then
     cur_rot = 1
   end
@@ -268,13 +275,33 @@ end
 
 
 -- TODO
--- drop piece until collision
 
+
+-- drop piece until collision
 function drop_piece ()
 end
 
 
---
+-- check if the current piece is
+-- colliding with array or its end
+function piece_collision () 
+-- Currently piece can go off the array
+end
+
+-- place piece into the array if 
+-- there is collision, get new one
+function place_piece ()
+
+end
+
+-- if there is a piece that is
+-- placed or swapped, do thing
+function reset_piece ()
+
+end
+
+
+-- TODO
 
 
 -- handles down, drop, and store key presses
@@ -286,8 +313,8 @@ function move_piece ()
 	end
 
   -- check bounds
-  if (cur_row > 10) then
-    cur_row = 10
+  if (cur_row > 20) then
+    cur_row = 20
   end
 
   -- press up
@@ -300,10 +327,12 @@ function move_piece ()
     if (str_typ == 0) then
       str_typ = cur_typ
       cur_typ = flr(rnd(7))+1
+      reset_xy()
     else
       temp = str_typ
       str_typ = cur_typ
       cur_typ = temp
+      reset_xy()
     end
   end
 
@@ -314,12 +343,23 @@ end
 
 
 function update_mino()
+
+  -- if the piece is set to collide with 
+  -- anything, place it
+  if (cur_collide) then
+    place_piece() -- TODO
+    clear()
+  end
+
+  -- update piece data
   rotate()
   move_piece()
+  get_cur_coords()  
+  piece_collision()
 
-  get_cur_coords()
+  reset_piece() -- TODO
 
-  -- if (clock(10)) then cur_row += 1 end -- TODO
+  if (clock(10)) then cur_row += 1 end -- TODO
 end
 
 
@@ -379,7 +419,7 @@ end
 -- prints a piece (1-7) on a
 -- "grid" defined by spacing 
 function print_piece (a, y, x)
- spr(16+a, x*5,	(y*6)-2)
+  spr(16+a, x*5,	(y*6)-2)
 end
 
 
@@ -435,18 +475,17 @@ function draw_backdrop ()
 
   end
  
- print('next piece', 64, 5)-- ybuffer = 18
- print_next_piece(72, 23) -- ybuffer = 10
+  print('next piece', 64, 5)-- ybuffer = 18
+  print_next_piece(72, 23) -- ybuffer = 10
 
- print('stored piece', 64, 45) -- ybuffer = 18
- print_store_piece(72, 63) -- ybuffer = 10
+  print('stored piece', 64, 45) -- ybuffer = 18
+  print_store_piece(72, 63) -- ybuffer = 10
 
- print('score', 64, 85) -- ybuffer = 10
- --print(time(), 64, 95) -- ybuffer = 10
- print(score, 64, 95) -- ybuffer = 10
+  print('score', 64, 85) -- ybuffer = 10
+  print(score, 64, 95) -- ybuffer = 10
 
- print('seed', 64, 105) -- ybuffer = 10
- print(seed, 64, 115)
+  print('seed', 64, 105) -- ybuffer = 10
+  print(seed, 64, 115)
 
 end
 
@@ -469,19 +508,18 @@ end
 
 --
 
-function draw_array (array) -- TODO
+function draw_array (array)
 
   for y=1,20 do
     for x=1,10 do
 
       ispiece = false
-      -- s = {y + cur_row, x + cur_col}
       s = {y, x}
 
       for i=1,4 do
         c = cur_piece[i]
 
-        if (pair_equal(c,s)) then -- todo
+        if (pair_equal(c,s)) then 
           print_piece(cur_typ, y, x)
           ispiece = true
           break
@@ -490,7 +528,6 @@ function draw_array (array) -- TODO
 
       if (not ispiece) then
         print_piece(array[y][x], y, x)
-        -- print_pair(s)
       end
 
     end
