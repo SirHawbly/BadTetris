@@ -37,6 +37,32 @@ end
 --
 
 
+-- l r u d a b - 6 keys
+btns1 = {0,0,0,0,0,0}
+btns2 = {0,0,0,0,0,0}
+
+function wasPressed(i)
+
+  -- buttons are 0 index in btn()
+  val = btns1[i+1] + btns2[i+1]
+  psh = btn(i)
+
+  -- check to see if the val 
+  -- was 0, not pushed.
+  if (val == 0) ret = true else ret = false
+  if (psh == true) tmp = 1 else tmp = 0
+  
+  -- set the array value to btns val
+  btns2[i+1] = btns1[i+1]
+  btns1[i+1] = tmp
+
+  return ret and psh
+end
+
+
+--
+
+
 -- the random seed variable
 -- get a val under 8192
 seed = flr(abs(8192*rnd()))
@@ -71,7 +97,7 @@ nxt_typ = flr(rnd(7))+1 -- next mino - todo
 str_typ = 0 -- stored mino - todo
 
 -- tetris piece values
-cur_row = 10 -- current x
+cur_row = 0 -- current x
 cur_col = 5 -- current y
 cur_rot = 1 -- pieces rotation
 
@@ -249,43 +275,24 @@ end
 -- tetris functions
 
 
--- handles right and left key presses
-function rotate ()
-
-	if (btn(0)) then -- if left
-    cur_rot -= 1
-	end
-
-	if (btn(1)) then -- if right
-		cur_rot += 1
-	end
-
-  -- check rotation bounds
-  if (cur_rot > 4) then
-    cur_rot = 1
-  end
-
-  if (cur_rot < 1) then
-    cur_rot = 4
-  end
-end
-
-
---
-
-
 -- TODO
-
-
--- drop piece until collision
-function drop_piece ()
-end
 
 
 -- check if the current piece is
 -- colliding with array or its end
 function piece_collision () 
 -- Currently piece can go off the array
+
+-- piece can all through board
+
+-- piece can rotate without bounds
+
+-- 
+end
+
+
+-- drop piece until collision
+function drop_piece ()
 end
 
 -- place piece into the array if 
@@ -301,29 +308,58 @@ function reset_piece ()
 end
 
 
+-- ADD COLLISION
+-- handles right and left key presses
+function rotate ()
+
+	if (wasPressed(0)) then -- if left
+    cur_rot -= 1
+	end
+
+	if (wasPressed(1)) then -- if right
+		cur_rot += 1
+	end
+
+  -- check rotation bounds
+  if (cur_rot > 4) then
+    cur_rot = 1
+  end
+
+  if (cur_rot < 1) then
+    cur_rot = 4
+  end
+end
+
+
 -- TODO
 
 
 -- handles down, drop, and store key presses
 function move_piece ()
 
+  -- drop teh piece a little
+  if (clock(10)) then 
+    cur_row += 1 
+  end -- TODO
+
   -- press down
-	if (btn(3)) then 
+	if (btn(3) and clock(2)) then 
     cur_row += 1
 	end
 
-  -- check bounds
-  if (cur_row > 20) then
-    cur_row = 20
-  end
+  -- check bounds only stop if collision 
+  -- TODO
+  --if (cur_row > 20) then
+    --cur_row = 20
+  --end
 
   -- press up
-  if (btn(2)) then
+  if (btn(2) and clock(2)) then
     drop_piece() -- TODO
   end
 
-  -- if either z or b is hit, store
-  if (btn(4) or btn(5)) then
+  -- if either a or b is hit, store
+  if (btn(4) or btn(5) and clock(2)) then
     if (str_typ == 0) then
       str_typ = cur_typ
       cur_typ = flr(rnd(7))+1
@@ -358,8 +394,6 @@ function update_mino()
   piece_collision()
 
   reset_piece() -- TODO
-
-  if (clock(10)) then cur_row += 1 end -- TODO
 end
 
 
