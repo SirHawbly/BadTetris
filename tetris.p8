@@ -149,7 +149,7 @@ end
 --
 
 
--- TODO use this
+-- todo use this
 function in_array(c)
   ret = true
 
@@ -280,19 +280,26 @@ end
 -- creates a mino from the cur_
 -- typ and rot of the game, then
 -- stores psuedo and real coords
-function get_cur_coords()
+function get_coords(typ, rot, row, col)
 -- function get_cur_coords(typ, rot, row, col) TODO
 
-  cur_psuedo = get_psuedo(cur_typ, cur_rot)
-
-  cur_piece = {}
+  psuedo = get_psuedo(typ, rot)
+  piece = {}
 
   for i=1,4 do
-    add(cur_piece, 
-        {cur_psuedo[i][1] + cur_row,
-          cur_psuedo[i][2] + cur_col})
+    add(piece, 
+        {psuedo[i][1] + row,
+          psuedo[i][2] + col})
   end
 
+  return piece
+
+end
+
+
+function get_cur_coords()
+  cur_psuedo = get_psuedo(cur_typ, cur_rot)
+  cur_piece = get_coords(cur_typ, cur_rot, cur_row, cur_col)
 end
 
 
@@ -317,60 +324,54 @@ end
 -- and delete full rows
 function clear ()
 
- for y=1,20 do
+  lines = 0
 
-  full = true
- 
-  for x=1,10 do
- 
-   -- go through the row, and 
-   -- check the contents
-   if (array[y][x] == 0) then
-    full = false
-   end
+  for y=1,20 do
 
-  end
+    full = true
+  
+    for x=1,10 do
+  
+      -- go through the row, and 
+      -- check the contents
+      if (array[y][x] == 0) then
+        full = false
+      end
 
-  -- go through all the rows
-  -- above, ending at two
-  if (full) then
-   if y == 1 then
-    array[1] = copy(blank_row)
-   else
-
-    array[y] = copy(blank_row)
-
-    for _y=0,y-1 do
-     array[y-_y] = copy(array[y-_y-1])
     end
 
-    array[1] = copy(blank_row)
+    -- go through all the rows
+    -- above, ending at two
+    if (full) then
+      lines += 1
 
-   end
+      if y == 1 then
+        array[1] = copy(blank_row)
+      else
+
+        array[y] = copy(blank_row)
+
+        for _y=0,y-1 do
+          array[y-_y] = copy(array[y-_y-1])
+        end
+
+        array[1] = copy(blank_row)
+
+      end
+    end
   end
- end
+  if (lines != 0) then
+    score += lines * 100 + (lines - 1) * 100
+  end
 end
-
 
 -- TODO
 
--- TODO write a safe to rotate function
-function is_rotate()
 
-  if (piece_collision()) then
-    place_piece()
-  end
-
-  -- rotate piece into positions that
-  -- dont collide
-
-end
-
-
-function is_landed(val)
+function is_landed(piece, val)
   for i=1,4 do
 
-    c = cur_piece[i]
+    c = piece[i]
 
     if (c[2] > 0 and c[2] < 11) then
       if (c[1] > 0 and c[1] <= 20-val) then
@@ -391,12 +392,12 @@ end
 
 -- check if the current piece is
 -- colliding with array or its end
-function piece_collision () 
+function piece_collision (piece) 
 
 -- Currently piece can go off the array
 -- piece can all through pieces latterally (ie yyxx -> yyx)
 -- piece can rotate without bounds
-  if (is_landed(0) or is_landed(1)) then
+  if (is_landed(piece, 0) or is_landed(piece, 1)) then
     return true
   end
 
@@ -424,10 +425,24 @@ function place_piece ()
   reset_piece()
   get_cur_coords()
 
-  if (piece_collision()) then
+  if (piece_collision(cur_piece)) then
     -- place_piece()
     game_over = true
   end
+end
+
+
+
+-- TODO write a safe to rotate function
+function make_rotate(dir)
+
+  if (piece_collision(cur_piece)) then -- TODO fix this
+    place_piece()
+  end
+
+  -- rotate piece into positions that
+  -- dont collide
+
 end
 
 
@@ -436,16 +451,12 @@ end
 function rotate ()
 
 	if (was_pressed(4)) then -- if A
-    --repeat -- TODO fix this for rotations that are bad
-      -- cur_rot -= 1
-    --until not piece_collision()	
+    make_rotate(-1)
     cur_rot -= 1
   end
 
 	if (was_pressed(5)) then -- if B
-    --repeat -- TODO fix this for rotations that are bad
-      --cur_rot += 1
-    --until not piece_collision()
+    make_rotate(1)
     cur_rot += 1
 	end
 
@@ -466,7 +477,7 @@ end
 
 -- drops down cur piece until collision
 function drop_piece ()
-  while (not piece_collision()) do
+  while (not piece_collision(cur_piece)) do
     cur_row += 1
     get_cur_coords()
   end
@@ -493,7 +504,7 @@ function move_piece ()
   
   -- press down
 	if (btn(3)) then 
-    if (not piece_collision()) then
+    if (not piece_collision(cur_piece)) then
       cur_row += 1
       get_cur_coords()
     else
@@ -512,7 +523,7 @@ function move_piece ()
 
   -- drop teh piece a little
   if (clock(.025)) then
-    if (not piece_collision()) then
+    if (not piece_collision(cur_piece)) then
       cur_row += 1
       get_cur_coords()
     end
@@ -534,7 +545,7 @@ function update_mino()
   rotate()
   move_piece()
   get_cur_coords()
-  if (piece_collision()) then
+  if (piece_collision(cur_piece)) then
     place_piece()
   end
 end
@@ -616,12 +627,12 @@ function draw_backdrop ()
   print_store_piece(72, 63) -- ybuffer = 10
 
   print('score', 64, 85) -- ybuffer = 10
-  --print(score, 64, 95) -- ybuffer = 10
-  print(clock(.025), 64, 95) -- TODO
+  print(score, 64, 95) -- ybuffer = 10
+  --print(clock(.025), 64, 95) -- TODO
 
   print('seed', 64, 105) -- ybuffer = 10
-  --print(seed, 64, 115)
-  print((time() % 1), 64, 115) -- TODO
+  print(seed, 64, 115)
+  --print((time() % 1), 64, 115) -- TODO
 
 end
 
@@ -749,17 +760,17 @@ rand(max)
 __gfx__
 60606060ccccccc01111111099999990aaaaaaa03333333022222220888888806600000000000000666666660000006600000000000000000000000000000000
 06060600c00000c01000001090000090a00000a03000003020000020800000806600000000000000666666660000006600000000000000000000000000000000
-60606060c0ccc0c01001101090900090a00a00a03033303020222020808880806600000000000000000000000000006600000000000000000000000000000000
-06060600c00c00c01000101090900090a0a0a0a03030003020020020800080806600000000000000000000000000006600000000000000000000000000000000
-60606060c00c00c01010101090900090a0a0a0a03000303020020020808000806600000000000000000000000000006600000000000000000000000000000000
-06060600c0ccc0c01001101090999090a00a00a03033303020020020808880806600000000000000000000000000006600000000000000000000000000000000
+60606060c00c00c01001001090090090a00a00a03003303020200020808800806600000000000000000000000000006600000000000000000000000000000000
+06060600c00000c01000101090090090a0a0a0a03030003020220020800080806600000000000000000000000000006600000000000000000000000000000000
+60606060c0c000c01010101090900090a0a0a0a03000303020200020808000806600000000000000000000000000006600000000000000000000000000000000
+06060600c00cc0c01001101090999090a00a00a03033003020022020800880806600000000000000000000000000006600000000000000000000000000000000
 60606060c00000c01000001090000090a00000a03000003020000020800000806600000066666666000000000000006600000000000000000000000000000000
 06060600ccccccc01111111099999990aaaaaaa03333333022222220888888806600000066666666000000000000006600000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-065600000ccc0000001100000900000000a000000333000002220000088800000000000000000000000000000000000000000000000000000000000000000000
-0565000000c0000000010000090000000a0a00000300000000200000000800000000000000000000000000000000000000000000000000000000000000000000
-0656000000c0000001010000090000000a0a00000003000000200000080000000000000000000000000000000000000000000000000000000000000000000000
-056500000ccc0000001100000999000000a000000333000000200000088800000000000000000000000000000000000000000000000000000000000000000000
+0656000000c00000001100000090000000a000000033000002000000088000000000000000000000000000000000000000000000000000000000000000000000
+056500000000000000010000009000000a0a00000300000002200000000800000000000000000000000000000000000000000000000000000000000000000000
+065600000c00000001010000090000000a0a00000003000002000000080000000000000000000000000000000000000000000000000000000000000000000000
+0565000000cc0000001100000999000000a000000330000000220000008800000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
