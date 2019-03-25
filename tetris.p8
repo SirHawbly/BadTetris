@@ -98,8 +98,8 @@ blank_array = {}
 -- values to store the current
 -- tetris piece types
 cur_typ = flr(rnd(7))+1 -- current mino 
-nxt_typ = flr(rnd(7))+1 -- next mino - todo
-str_typ = 0 -- stored mino - todo
+nxt_typ = flr(rnd(7))+1 -- next mino
+str_typ = 0 -- stored mino
 
 -- tetris piece values
 cur_row = 0 -- current x
@@ -188,7 +188,7 @@ coord_x = {-1, 0, 1, 2,
            -1, 0, 1, 2,
            -1, 0, 1, 2}									
 
--- piece definitions (with c as center) - TODO
+-- piece definitions (with c as center)
 
 -- 1:
 i_piece = {{ 9,10,11,12}, --         |   x     |         |     x |
@@ -354,8 +354,15 @@ end
 
 -- TODO
 
+-- TODO write a safe to rotate function
 function is_rotate()
 
+  if (piece_collision()) then
+    place_piece()
+  end
+
+  -- rotate piece into positions that
+  -- dont collide
 
 end
 
@@ -387,7 +394,7 @@ end
 function piece_collision () 
 
 -- Currently piece can go off the array
--- piece can all through board
+-- piece can all through pieces latterally (ie yyxx -> yyx)
 -- piece can rotate without bounds
   if (is_landed(0) or is_landed(1)) then
     return true
@@ -397,7 +404,7 @@ function piece_collision ()
 end
 
 
--- TODO -- doesnt place at all
+-- TODO stall piece placing some how
 -- place piece into the array if 
 -- there is collision, get new one
 function place_piece ()
@@ -487,7 +494,7 @@ function move_piece ()
   -- press down
 	if (btn(3)) then 
     if (not piece_collision()) then
-      cur_row += 1 -- TODO add piece collision
+      cur_row += 1
       get_cur_coords()
     else
       place_piece()
@@ -504,12 +511,12 @@ function move_piece ()
   end
 
   -- drop teh piece a little
-  if (clock(.025)) then -- TODO add piece collision
+  if (clock(.025)) then
     if (not piece_collision()) then
-      cur_row += 1 -- TODO add piece collision
+      cur_row += 1
       get_cur_coords()
     end
-  end -- TODO
+  end
 
 end
 
@@ -530,8 +537,6 @@ function update_mino()
   if (piece_collision()) then
     place_piece()
   end
-
-  -- reset_piece() -- TODO
 end
 
 
@@ -570,7 +575,7 @@ end
 --
 
 
-function print_store_piece (x, y) -- todo
+function print_store_piece (x, y)
 
   if (str_typ == 0) then return end
 
@@ -612,11 +617,11 @@ function draw_backdrop ()
 
   print('score', 64, 85) -- ybuffer = 10
   --print(score, 64, 95) -- ybuffer = 10
-  print(clock(.025), 64, 95) -- ybuffer = 10
+  print(clock(.025), 64, 95) -- TODO
 
   print('seed', 64, 105) -- ybuffer = 10
   --print(seed, 64, 115)
-  print((time() % 1), 64, 115)
+  print((time() % 1), 64, 115) -- TODO
 
 end
 
