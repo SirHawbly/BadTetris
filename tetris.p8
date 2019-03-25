@@ -25,8 +25,7 @@ end
 
 function clock (t)
 
-  cur = time() * 100
-  if (cur % t == 0) then
+  if ((time() % 1) % t == 0) then
     return true
   else
     return false
@@ -37,11 +36,17 @@ end
 --
 
 
+game_over = false
+
+
+--
+
+
 -- l r u d a b - 6 keys
 btns1 = {0,0,0,0,0,0}
 btns2 = {0,0,0,0,0,0}
 
-function wasPressed(i)
+function was_pressed(i)
 
   -- buttons are 0 index in btn()
   val = btns1[i+1] + btns2[i+1]
@@ -140,6 +145,25 @@ function _init()
 
 end
 
+
+--
+
+
+-- TODO use this
+function in_array(c)
+  ret = true
+
+  if (c[2] > 0 and c[2] < 11) then
+    ret = false 
+  end    
+  if (c[1] > 0 and c[1] < 19) then
+    ret = false 
+  end
+
+  return ret
+end
+
+
 -->8
 
 -- tetris objects
@@ -198,10 +222,10 @@ s_piece = {{ 6, 7,10, 9}, -- x     |   x x |   x   |       |
            { 6,10,11,15}} --       |       |       |       |
                          
 -- 6:
-t_piece = {{ 9,10,11,14}, --       |   x   |   x   |   x   |
-           { 6,10,14,11}, -- x c x | x c   | x c x |   c x |
-           { 9,10,11, 6}, --   x   |   x   |       |   x   |
-           { 6,10,14, 9}} --       |       |       |       |
+t_piece = {{ 9,10,11, 6}, --   x   |   x   |       |   x   |
+           { 6,10,14, 9}, -- x c x | x c   | x c x |   c x |
+           { 9,10,11,14}, --       |   x   |   x   |   x   |
+           { 6,10,14,11}} --       |       |       |       |
            
 -- 7:
 z_piece = {{ 5, 6,10,11}, --     x |       |   x   | x x   |
@@ -252,10 +276,12 @@ end
 --
 
 
+-- TODO -- GENERALIZE THIS
 -- creates a mino from the cur_
 -- typ and rot of the game, then
 -- stores psuedo and real coords
 function get_cur_coords()
+-- function get_cur_coords(typ, rot, row, col) TODO
 
   cur_psuedo = get_psuedo(cur_typ, cur_rot)
 
@@ -275,125 +301,12 @@ end
 -- tetris functions
 
 
--- TODO
-
-
--- check if the current piece is
--- colliding with array or its end
-function piece_collision () 
--- Currently piece can go off the array
-
--- piece can all through board
-
--- piece can rotate without bounds
-
--- 
-end
-
-
--- drop piece until collision
-function drop_piece ()
-end
-
--- place piece into the array if 
--- there is collision, get new one
-function place_piece ()
-
-end
-
 -- if there is a piece that is
 -- placed or swapped, do thing
 function reset_piece ()
-
-end
-
-
--- ADD COLLISION
--- handles right and left key presses
-function rotate ()
-
-	if (wasPressed(0)) then -- if left
-    cur_rot -= 1
-	end
-
-	if (wasPressed(1)) then -- if right
-		cur_rot += 1
-	end
-
-  -- check rotation bounds
-  if (cur_rot > 4) then
-    cur_rot = 1
-  end
-
-  if (cur_rot < 1) then
-    cur_rot = 4
-  end
-end
-
-
--- TODO
-
-
--- handles down, drop, and store key presses
-function move_piece ()
-
-  -- drop teh piece a little
-  if (clock(10)) then 
-    cur_row += 1 
-  end -- TODO
-
-  -- press down
-	if (btn(3) and clock(2)) then 
-    cur_row += 1
-	end
-
-  -- check bounds only stop if collision 
-  -- TODO
-  --if (cur_row > 20) then
-    --cur_row = 20
-  --end
-
-  -- press up
-  if (btn(2) and clock(2)) then
-    drop_piece() -- TODO
-  end
-
-  -- if either a or b is hit, store
-  if (btn(4) or btn(5) and clock(2)) then
-    if (str_typ == 0) then
-      str_typ = cur_typ
-      cur_typ = flr(rnd(7))+1
-      reset_xy()
-    else
-      temp = str_typ
-      str_typ = cur_typ
-      cur_typ = temp
-      reset_xy()
-    end
-  end
-
-end
-
-
---
-
-
-function update_mino()
-
-  -- if the piece is set to collide with 
-  -- anything, place it
-  if (cur_collide) then
-    place_piece() -- TODO
-    clear()
-  end
-
-  -- update piece data
-  rotate()
-  move_piece()
-  get_cur_coords()  
-  piece_collision()
-
-  reset_piece() -- TODO
+  cur_typ = nxt_typ
+  nxt_typ = flr(rnd(7))+1
+  reset_xy()
 end
 
 
@@ -415,13 +328,12 @@ function clear ()
    if (array[y][x] == 0) then
     full = false
    end
- 
+
   end
 
   -- go through all the rows
   -- above, ending at two
   if (full) then
-
    if y == 1 then
     array[1] = copy(blank_row)
    else
@@ -435,11 +347,191 @@ function clear ()
     array[1] = copy(blank_row)
 
    end
+  end
+ end
+end
 
+
+-- TODO
+
+function is_rotate()
+
+
+end
+
+
+function is_landed(val)
+  for i=1,4 do
+
+    c = cur_piece[i]
+
+    if (c[2] > 0 and c[2] < 11) then
+      if (c[1] > 0 and c[1] <= 20-val) then
+        if (array[c[1]+val][c[2]] > 0) then 
+          return true
+        end
+      end
+    end
+
+    if (c[1] == 20) then
+      return true
+    end
+  end 
+
+  return false
+end
+
+
+-- check if the current piece is
+-- colliding with array or its end
+function piece_collision () 
+
+-- Currently piece can go off the array
+-- piece can all through board
+-- piece can rotate without bounds
+  if (is_landed(0) or is_landed(1)) then
+    return true
   end
 
- end
+  return false
+end
 
+
+-- TODO -- doesnt place at all
+-- place piece into the array if 
+-- there is collision, get new one
+function place_piece ()
+
+  -- go through pieces printing those
+  -- that are in the array
+  for i=1,4 do
+    c = cur_piece[i]
+    if (c[2] > 0 and c[2] < 11) then
+      if (c[1] > 0 and c[1] < 21) then
+        array[c[1]][c[2]] = cur_typ
+      end
+    end
+  end
+
+  -- piece needs to be reset after
+  reset_piece()
+  get_cur_coords()
+
+  if (piece_collision()) then
+    -- place_piece()
+    game_over = true
+  end
+end
+
+
+-- ADD COLLISION
+-- handles right and left key presses
+function rotate ()
+
+	if (was_pressed(4)) then -- if A
+    --repeat -- TODO fix this for rotations that are bad
+      -- cur_rot -= 1
+    --until not piece_collision()	
+    cur_rot -= 1
+  end
+
+	if (was_pressed(5)) then -- if B
+    --repeat -- TODO fix this for rotations that are bad
+      --cur_rot += 1
+    --until not piece_collision()
+    cur_rot += 1
+	end
+
+  -- check rotation bounds
+  if (cur_rot > 4) then
+    cur_rot = 1
+  end
+
+  if (cur_rot < 1) then
+    cur_rot = 4
+  end
+  get_cur_coords()
+end
+
+
+-- TODO
+
+
+-- drops down cur piece until collision
+function drop_piece ()
+  while (not piece_collision()) do
+    cur_row += 1
+    get_cur_coords()
+  end
+end
+
+
+-- handles down, drop, and store key presses
+function move_piece ()
+
+  -- press up, swap piece
+	if (was_pressed(2)) then 
+    -- drop_piece() -- TODO
+    if (str_typ == 0) then
+      str_typ = cur_typ
+      reset_piece()
+
+    else
+      temp = str_typ
+      str_typ = cur_typ
+      cur_typ = temp
+      reset_xy()
+    end
+	end
+  
+  -- press down
+	if (btn(3)) then 
+    if (not piece_collision()) then
+      cur_row += 1 -- TODO add piece collision
+      get_cur_coords()
+    else
+      place_piece()
+    end
+	end
+
+  -- if left or right are hit, move col
+  -- TODO add piece collision
+  if (was_pressed(0)) then 
+    cur_col -= 1
+  end 
+  if (was_pressed(1)) then
+    cur_col += 1
+  end
+
+  -- drop teh piece a little
+  if (clock(.025)) then -- TODO add piece collision
+    if (not piece_collision()) then
+      cur_row += 1 -- TODO add piece collision
+      get_cur_coords()
+    end
+  end -- TODO
+
+end
+
+
+--
+
+
+function update_mino()
+
+  clear()
+
+  -- TODO verify wrap all movements in piece collision
+  -- TODO update coords every movement
+  -- update piece data
+  rotate()
+  move_piece()
+  get_cur_coords()
+  if (piece_collision()) then
+    place_piece()
+  end
+
+  -- reset_piece() -- TODO
 end
 
 
@@ -463,7 +555,7 @@ end
 function print_next_piece (x, y) -- todo
 
   -- print the first frame of the next piece
-  nxt_psuedo = get_psuedo(nxt_typ, cur_rot) -- todo, change rot to 1
+  nxt_psuedo = get_psuedo(nxt_typ, 1)
 
   for i = 1,4 do
     s = nxt_psuedo[i]
@@ -510,16 +602,21 @@ function draw_backdrop ()
   end
  
   print('next piece', 64, 5)-- ybuffer = 18
-  print_next_piece(72, 23) -- ybuffer = 10
-
+  if (not game_over) then
+    print_next_piece(72, 23) -- ybuffer = 10
+  else
+    print('game over', 64, 23)-- ybuffer = 18
+  end
   print('stored piece', 64, 45) -- ybuffer = 18
   print_store_piece(72, 63) -- ybuffer = 10
 
   print('score', 64, 85) -- ybuffer = 10
-  print(score, 64, 95) -- ybuffer = 10
+  --print(score, 64, 95) -- ybuffer = 10
+  print(clock(.025), 64, 95) -- ybuffer = 10
 
   print('seed', 64, 105) -- ybuffer = 10
-  print(seed, 64, 115)
+  --print(seed, 64, 115)
+  print((time() % 1), 64, 115)
 
 end
 
@@ -536,7 +633,8 @@ end
 
 
 function pair_equal (p1, p2)
-  return ((p1[1] == p2[1]) and (p1[2] == p2[2]))
+  return ((p1[1] == p2[1]) and 
+            (p1[2] == p2[2]))
 end
 
 
@@ -575,10 +673,14 @@ end
 function _draw ()
 
   cls()
-  update_mino()
+
+  if (not game_over) then
+    update_mino()
+  end
+
   draw_backdrop()
-  draw_array(array)
   clear()
+  draw_array(array)
 end
 
 
@@ -613,8 +715,7 @@ function array_test ()
  end
 end
 
--- array_test()
--- clear()
+
 
 
 -->8
