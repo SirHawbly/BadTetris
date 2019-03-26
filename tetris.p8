@@ -297,6 +297,9 @@ function get_coords(typ, rot, row, col)
 end
 
 
+--
+
+
 function get_cur_coords()
   cur_psuedo = get_psuedo(cur_typ, cur_rot)
   cur_piece = get_coords(cur_typ, cur_rot, cur_row, cur_col)
@@ -365,6 +368,7 @@ function clear ()
   end
 end
 
+
 -- TODO
 
 
@@ -390,9 +394,39 @@ function is_landed(piece, val)
 end
 
 
+-- TODO
+
+
+function piece_collision_latteral (piece, val)
+  for i=1,4 do
+
+    c = piece[i]
+
+    if (c[2] <= 1 and val == -1) then
+      return true
+    end
+
+    if (c[2] >= 10 and val == 1) then
+      return true
+    end
+
+    if (c[1] >= 1) then
+      if (array[c[1]][c[2]+val] != 0) then
+        return true
+      end
+    end
+  end 
+
+  return false
+end
+
+
+--
+
+
 -- check if the current piece is
 -- colliding with array or its end
-function piece_collision (piece) 
+function piece_collision_vertical (piece) 
 
 -- Currently piece can go off the array
 -- piece can all through pieces latterally (ie yyxx -> yyx)
@@ -403,6 +437,21 @@ function piece_collision (piece)
 
   return false
 end
+
+
+--
+
+
+function piece_collision_latteral_1 (piece, val)
+
+  if (is_bumping(piece, val)) then
+    return true
+  end
+
+  return false
+end
+
+--
 
 
 -- TODO stall piece placing some how
@@ -425,19 +474,43 @@ function place_piece ()
   reset_piece()
   get_cur_coords()
 
-  if (piece_collision(cur_piece)) then
-    -- place_piece()
+  -- if after reset, we collide, end game
+  if (piece_collision_vertical(cur_piece)) then
     game_over = true
   end
 end
 
 
+--
+
 
 -- TODO write a safe to rotate function
 function make_rotate(dir)
 
-  if (piece_collision(cur_piece)) then -- TODO fix this
+  if (piece_collision_vertical(cur_piece)) then 
     place_piece()
+  end
+
+  cur_dir = dir
+
+  for i=1,4 do
+    cur_dir += dir
+
+    if (cur_dir > 4) then
+      cur_dir = 1
+    end
+
+    if (cur_dir < 1) then
+      cur_dir = 4
+    end
+
+    piece = get_coords(cur_typ, cur_dir, cur_row, cur_col)
+
+    if (not piece_collision_latteral(piece, 0)) then -- TODO fix this
+      cur_rot = cur_dir
+      get_cur_coords()
+      return
+    end
   end
 
   -- rotate piece into positions that
@@ -446,28 +519,23 @@ function make_rotate(dir)
 end
 
 
+--
+
+
 -- ADD COLLISION
 -- handles right and left key presses
 function rotate ()
 
 	if (was_pressed(4)) then -- if A
     make_rotate(-1)
-    cur_rot -= 1
+    --cur_rot -= 1
   end
 
 	if (was_pressed(5)) then -- if B
     make_rotate(1)
-    cur_rot += 1
+    --cur_rot += 1
 	end
 
-  -- check rotation bounds
-  if (cur_rot > 4) then
-    cur_rot = 1
-  end
-
-  if (cur_rot < 1) then
-    cur_rot = 4
-  end
   get_cur_coords()
 end
 
@@ -477,11 +545,14 @@ end
 
 -- drops down cur piece until collision
 function drop_piece ()
-  while (not piece_collision(cur_piece)) do
+  while (not piece_collision_vertical(cur_piece)) do
     cur_row += 1
     get_cur_coords()
   end
 end
+
+
+--
 
 
 -- handles down, drop, and store key presses
@@ -489,7 +560,6 @@ function move_piece ()
 
   -- press up, swap piece
 	if (was_pressed(2)) then 
-    -- drop_piece() -- TODO
     if (str_typ == 0) then
       str_typ = cur_typ
       reset_piece()
@@ -504,7 +574,7 @@ function move_piece ()
   
   -- press down
 	if (btn(3)) then 
-    if (not piece_collision(cur_piece)) then
+    if (not piece_collision_vertical(cur_piece)) then
       cur_row += 1
       get_cur_coords()
     else
@@ -514,16 +584,16 @@ function move_piece ()
 
   -- if left or right are hit, move col
   -- TODO add piece collision
-  if (was_pressed(0)) then 
+  if (btn(0) and not piece_collision_latteral(cur_piece, -1)) then 
     cur_col -= 1
   end 
-  if (was_pressed(1)) then
+  if (btn(1) and not piece_collision_latteral(cur_piece, 1)) then 
     cur_col += 1
   end
 
   -- drop teh piece a little
   if (clock(.025)) then
-    if (not piece_collision(cur_piece)) then
+    if (not piece_collision_vertical(cur_piece)) then
       cur_row += 1
       get_cur_coords()
     end
@@ -545,7 +615,7 @@ function update_mino()
   rotate()
   move_piece()
   get_cur_coords()
-  if (piece_collision(cur_piece)) then
+  if (piece_collision_vertical(cur_piece)) then
     place_piece()
   end
 end
@@ -553,9 +623,6 @@ end
 
 -->8
 -- game functions
-
-
---
 
 
 -- prints a piece (1-7) on a
