@@ -363,6 +363,7 @@ function clear ()
       end
     end
   end
+
   if (lines != 0) then
     score += lines * 100 + (lines - 1) * 100
   end
@@ -527,14 +528,22 @@ end
 function rotate ()
 
 	if (was_pressed(4)) then -- if A
-    make_rotate(-1)
-    --cur_rot -= 1
+    -- make_rotate(-1)
+    cur_rot -= 1
   end
 
 	if (was_pressed(5)) then -- if B
-    make_rotate(1)
-    --cur_rot += 1
+    -- make_rotate(1)
+    cur_rot += 1
 	end
+
+  if (cur_rot > 4) then
+    cur_rot = 1
+  end
+
+  if (cur_rot < 1) then
+    cur_rot = 4
+  end
 
   get_cur_coords()
 end
@@ -584,10 +593,12 @@ function move_piece ()
 
   -- if left or right are hit, move col
   -- TODO add piece collision
-  if (btn(0) and not piece_collision_latteral(cur_piece, -1)) then 
+  -- if (btn(0) and not piece_collision_latteral(cur_piece, -1)) then 
+	if (btn(0) and not piece_collision_latteral(cur_piece, -1)) then 
     cur_col -= 1
   end 
-  if (btn(1) and not piece_collision_latteral(cur_piece, 1)) then 
+  -- if (btn(1) and not piece_collision_latteral(cur_piece, 1)) then 
+  	if (btn(1) and not piece_collision_latteral(cur_piece, 1)) then 
     cur_col += 1
   end
 
