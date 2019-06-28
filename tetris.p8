@@ -276,12 +276,12 @@ end
 --
 
 
--- TODO -- GENERALIZE THIS
+-- todo -- generalize this
 -- creates a mino from the cur_
 -- typ and rot of the game, then
 -- stores psuedo and real coords
 function get_coords(typ, rot, row, col)
--- function get_cur_coords(typ, rot, row, col) TODO
+-- function get_cur_coords(typ, rot, row, col) todo
 
   psuedo = get_psuedo(typ, rot)
   piece = {}
@@ -370,7 +370,7 @@ function clear ()
 end
 
 
--- TODO
+-- todo
 
 
 function is_landed(piece, val)
@@ -395,7 +395,7 @@ function is_landed(piece, val)
 end
 
 
--- TODO
+-- todo
 
 
 function piece_collision_latteral (piece, val)
@@ -429,7 +429,7 @@ end
 -- colliding with array or its end
 function piece_collision_vertical (piece) 
 
--- Currently piece can go off the array
+-- currently piece can go off the array
 -- piece can all through pieces latterally (ie yyxx -> yyx)
 -- piece can rotate without bounds
   if (is_landed(piece, 0) or is_landed(piece, 1)) then
@@ -455,7 +455,7 @@ end
 --
 
 
--- TODO stall piece placing some how
+-- todo stall piece placing some how
 -- place piece into the array if 
 -- there is collision, get new one
 function place_piece ()
@@ -485,7 +485,7 @@ end
 --
 
 
--- TODO write a safe to rotate function
+-- todo write a safe to rotate function
 function make_rotate(dir)
 
   if (piece_collision_vertical(cur_piece)) then 
@@ -507,7 +507,7 @@ function make_rotate(dir)
 
     piece = get_coords(cur_typ, cur_dir, cur_row, cur_col)
 
-    if (not piece_collision_latteral(piece, 0)) then -- TODO fix this
+    if (not piece_collision_latteral(piece, 0)) then -- todo fix this
       cur_rot = cur_dir
       get_cur_coords()
       return
@@ -523,16 +523,16 @@ end
 --
 
 
--- ADD COLLISION
+-- add collision
 -- handles right and left key presses
 function rotate ()
 
-	if (was_pressed(4)) then -- if A
+	if (was_pressed(4)) then -- if a
     -- make_rotate(-1)
     cur_rot -= 1
   end
 
-	if (was_pressed(5)) then -- if B
+	if (was_pressed(5)) then -- if b
     -- make_rotate(1)
     cur_rot += 1
 	end
@@ -549,7 +549,7 @@ function rotate ()
 end
 
 
--- TODO
+-- todo
 
 
 -- drops down cur piece until collision
@@ -592,7 +592,7 @@ function move_piece ()
 	end
 
   -- if left or right are hit, move col
-  -- TODO add piece collision
+  -- todo add piece collision
   -- if (btn(0) and not piece_collision_latteral(cur_piece, -1)) then 
 	if (btn(0) and not piece_collision_latteral(cur_piece, -1)) then 
     cur_col -= 1
@@ -620,8 +620,8 @@ function update_mino()
 
   clear()
 
-  -- TODO verify wrap all movements in piece collision
-  -- TODO update coords every movement
+  -- todo verify wrap all movements in piece collision
+  -- todo update coords every movement
   -- update piece data
   rotate()
   move_piece()
@@ -701,16 +701,23 @@ function draw_backdrop ()
   else
     print('game over', 64, 23)-- ybuffer = 18
   end
-  print('stored piece', 64, 45) -- ybuffer = 18
-  print_store_piece(72, 63) -- ybuffer = 10
 
+  print('stored piece', 64, 45) -- ybuffer = 18
+  if (not game_over) then
+  	print_store_piece(72, 63) -- ybuffer = 10
+  else
+   print('hit "a" to', 64, 63)-- ybuffer = 18
+  	print('reset', 64, 69)
+  end
+  
   print('score', 64, 85) -- ybuffer = 10
   print(score, 64, 95) -- ybuffer = 10
-  --print(clock(.025), 64, 95) -- TODO
+
+  --print(clock(.025), 64, 95) -- todo
 
   print('seed', 64, 105) -- ybuffer = 10
   print(seed, 64, 115)
-  --print((time() % 1), 64, 115) -- TODO
+  --print((time() % 1), 64, 115) -- todo
 
 end
 
@@ -771,6 +778,21 @@ function _draw ()
   if (not game_over) then
     update_mino()
   end
+  
+  if (game_over) then
+  	if (btn(4)) then 
+ 
+  		-- hit a to reset seed piece
+  		-- and array. 	
+  	 seed = flr(abs(8192*rnd()))
+				srand(seed)
+  		
+  		reset_piece()
+  		array = copy(blank_array)
+  		
+  		game_over = false
+  	end
+  end
 
   draw_backdrop()
   clear()
@@ -780,7 +802,7 @@ end
 
 -->8
 
--- Testing
+-- testing
 
 --[[
 make_mino()
